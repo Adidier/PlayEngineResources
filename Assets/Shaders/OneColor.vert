@@ -7,7 +7,6 @@ out vec4 vCol;
 uniform mat4 model;
 uniform mat4 projection;
 uniform mat4 view;
-
 uniform vec3 color1;
 uniform vec3 color2;
 
