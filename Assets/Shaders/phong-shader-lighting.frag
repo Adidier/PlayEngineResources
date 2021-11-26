@@ -50,12 +50,11 @@ vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewv, Material mate
 {
 	vec3 lightDir = normalize(light.direction);//Tarea porque -1
 
-	vec3 norm = normalize(normal);
-	vec3 refl = reflect(lightDir , norm);
+	vec3 refl = reflect(lightDir , normal);
 	//ambient light computation
 	vec3 ambient = light.base.ambientColor * texture(material.difuse,vertexUv).rgb;
 	//diffuse light computation
-	vec3 diffuse = max(dot(norm, lightDir), 0.0) * texture(material.difuse,vertexUv).rgb;
+	vec3 diffuse = light.base.diffuseColor * max(dot(normal, lightDir), 0.0) * texture(material.difuse,vertexUv).rgb;
 
 	//specular light computation
 	vec3 specular = vec3( 0.0, 0.0, 0.0 );
@@ -64,10 +63,35 @@ vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewv, Material mate
 	return clamp(ambient + diffuse + specular , 0.0, 1.0);
 }
 
+
+vec3 CalPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 view)
+{
+	float distance = length(light.position-fragPos);
+	vec3 lightDir = normalize(light.position-fragPos);
+	vec3 ambient = clamp(light.base.ambientColor, 0.0, 1.0) * texture(material.difuse,vertexUv).rgb;
+
+	vec3 diffuse = light.base.diffuseColor * max(dot(normal, lightDir), 0.0) * texture(material.difuse,vertexUv).rgb;
+
+	vec3 specular = vec3( 0.0, 0.0, 0.0 );
+	vec3 refl = reflect(lightDir , normal);
+	specular = pow(max(0.0, dot(view,refl)), material.shininess)*light.base.specularColor;
+
+	float attenuation = 1/ (light.constant+light.linear*distance +light.exponent*(distance*distance));
+
+	return clamp((ambient + diffuse + specular)*attenuation , 0.0, 1.0);
+}
+
 void main()
 {
+	vec3 norm = normalize(vertexNormal);
 	vec3 viewDir = normalize(eyePosition - vertexPos);
-	vec3 lightResult = CalcDirLight(directionalLight, vertexNormal, viewDir, material, vertexUv);
+	vec3 lightResult = CalcDirLight(directionalLight, norm, viewDir, material, vertexUv);
+
+	for(int i=0; i < MAX_POINT_LIGHTS; ++i)
+	{
+		lightResult += CalPointLight(pointLights[i], norm, vertexPos, viewDir);
+	}
+
 	colour = vec4(lightResult,1.0);
 }
 
