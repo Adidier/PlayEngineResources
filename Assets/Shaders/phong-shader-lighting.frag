@@ -44,7 +44,7 @@ uniform DirectionalLight directionalLight;
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform Material material;
 
-uniform vec3 eyePosition;
+uniform vec3 cameraPosition;
 
 vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewv, Material material, vec2 vertexUv)
 {
@@ -84,7 +84,7 @@ vec3 CalPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 view)
 void main()
 {
 	vec3 norm = normalize(vertexNormal);
-	vec3 viewDir = normalize(eyePosition - vertexPos);
+	vec3 viewDir = normalize(cameraPosition - vertexPos);
 	vec3 lightResult = CalcDirLight(directionalLight, norm, viewDir, material, vertexUv);
 
 	for(int i=0; i < MAX_POINT_LIGHTS; ++i)
