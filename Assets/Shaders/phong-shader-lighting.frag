@@ -38,6 +38,13 @@ struct Material
 	float shininess;
 };
 
+struct FogInfo {
+ float maxDist;
+ float minDist;
+ vec3 color;
+};
+uniform FogInfo Fog;
+
 uniform int pointLightCount;
 
 uniform DirectionalLight directionalLight;
@@ -92,7 +99,15 @@ void main()
 		lightResult += CalPointLight(pointLights[i], norm, vertexPos, viewDir);
 	}
 
-	colour = vec4(lightResult,1.0);
+	
+	float dist = distance(cameraPosition,vertexPos);
+	float fogFactor = (Fog.maxDist - dist) /
+						(Fog.maxDist - Fog.minDist);
+	fogFactor = clamp( fogFactor, 0.0, 1.0 );
+
+	vec3 color = mix( Fog.color, lightResult, fogFactor );
+
+	colour = vec4(color,1.0);
 }
 
 
